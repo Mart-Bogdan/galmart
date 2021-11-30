@@ -34,7 +34,7 @@ public class ButtonViewFactory {
         return new Stack(buttons);
     }
 
-    private boolean canInclude(CommoditySpecAPI commodity) {
+    public boolean canInclude(CommoditySpecAPI commodity) {
         if (commodity.hasTag("nonecon")) {
             return false;
         }
@@ -50,7 +50,7 @@ public class ButtonViewFactory {
         return button;
     }
 
-    private void sortCommodities(List<String> commodityIds) {
+    public void sortCommodities(List<String> commodityIds) {
         Collections.sort(commodityIds, new Comparator<String>() {
 
             @Override

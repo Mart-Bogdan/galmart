@@ -11,7 +11,6 @@ import com.fs.starfarer.api.util.Misc;
 import galmart.ui.TableContent;
 
 public abstract class MarketTableContent implements TableContent {
-
     protected String commodityId;
     protected TableCellHelper helper;
     private List<MarketAPI> markets;
@@ -46,7 +45,8 @@ public abstract class MarketTableContent implements TableContent {
     }
 
     protected Object[] getHeader(float width, String availableOrDemand, String excessOrDeficit) {
-        Object header[] = { "#", .05f * width, "Price", .1f * width, availableOrDemand, .1f * width, excessOrDeficit,
+        Object header[] =
+                { "#", .05f * width, "Price", .1f * width, availableOrDemand, .1f * width, excessOrDeficit,
                 .1f * width, "Location", .3f * width, "Star system", .2f * width, "Dist (ly)", .1f * width };
         return header;
     }

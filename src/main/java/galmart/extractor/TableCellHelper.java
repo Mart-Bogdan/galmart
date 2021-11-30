@@ -57,8 +57,12 @@ public class TableCellHelper {
     }
 
     public String getDistance(MarketAPI market) {
-        float distance = Misc.getDistanceToPlayerLY(market.getPrimaryEntity());
+        float distance = getDistanceFloat(market);
         return String.format("%.1f", distance);
+    }
+
+    public Float getDistanceFloat(MarketAPI market) {
+        return Misc.getDistanceToPlayerLY(market.getPrimaryEntity());
     }
 
     public String getLocation(MarketAPI market) {

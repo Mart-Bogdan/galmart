@@ -12,10 +12,12 @@ import galmart.filter.market.CommodityDemandFilter;
 
 public class SellMarketFactory extends MarketFactory {
 
+    protected String commodityId;
     private DemandPrice price;
 
     public SellMarketFactory(String commodityId, EconomyAPI economy) {
-        super(commodityId, economy);
+        super(economy);
+        this.commodityId = commodityId;
         this.price = new DemandPrice(commodityId, economy);
     }
 

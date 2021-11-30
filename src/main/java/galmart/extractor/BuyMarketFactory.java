@@ -11,11 +11,12 @@ import galmart.CollectionsHelper;
 import galmart.filter.market.CommodityAvailableFilter;
 
 public class BuyMarketFactory extends MarketFactory {
-
+    protected String commodityId;
     private SupplyPrice price;
 
     public BuyMarketFactory(String commodityId, EconomyAPI economy) {
-        super(commodityId, economy);
+        super(economy);
+        this.commodityId = commodityId;
         this.price = new SupplyPrice(commodityId, economy);
     }
 

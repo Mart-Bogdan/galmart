@@ -10,11 +10,9 @@ import galmart.filter.market.MarketNotHidden;
 
 public abstract class MarketFactory {
 
-    protected String commodityId;
     protected EconomyAPI economy;
 
-    public MarketFactory(String commodityId, EconomyAPI economy) {
-        this.commodityId = commodityId;
+    public MarketFactory(EconomyAPI economy) {
         this.economy = economy;
     }
 

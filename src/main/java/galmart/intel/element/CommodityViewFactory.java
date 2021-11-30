@@ -7,13 +7,9 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.econ.EconomyAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
+import galmart.extractor.*;
 import org.lwjgl.input.Keyboard;
 
-import galmart.extractor.BuyMarketFactory;
-import galmart.extractor.BuyTableContent;
-import galmart.extractor.MarketFactory;
-import galmart.extractor.SellMarketFactory;
-import galmart.extractor.SellTableContent;
 import galmart.intel.GalmartBoard.CommodityTab;
 import galmart.ui.Renderable;
 import galmart.ui.Row;
@@ -41,17 +37,25 @@ public class CommodityViewFactory {
     }
 
     private Renderable getTabs(CommodityTab activeTab) {
+        Renderable opportunitiesButton = new TabButton(CommodityTab.OPPORTUNITIES, activeTab, Keyboard.KEY_O);
         Renderable buyButton = new TabButton(CommodityTab.BUY, activeTab, Keyboard.KEY_B);
         Renderable sellButton = new TabButton(CommodityTab.SELL, activeTab, Keyboard.KEY_S);
-        return new Row(Arrays.asList(buyButton, sellButton));
+        return new Row(Arrays.asList(opportunitiesButton, buyButton, sellButton));
     }
 
     private TableContent getTableContent(String commodityId, CommodityTab activeTab) {
         TableContent tableContent = null;
-        if (activeTab == CommodityTab.BUY) {
-            tableContent = getBuyTableContent(commodityId);
-        } else if (activeTab == CommodityTab.SELL) {
-            tableContent = getSellTableContent(commodityId);
+        switch (activeTab) {
+            case BUY:
+                tableContent = getBuyTableContent(commodityId);
+                break;
+            case SELL:
+                tableContent = getSellTableContent(commodityId);
+                break;
+            case OPPORTUNITIES:
+            default:
+                tableContent = getOpportunitiesTableContent();
+                break;
         }
         return tableContent;
     }
@@ -62,6 +66,10 @@ public class CommodityViewFactory {
 
     private TableContent getSellTableContent(String commodityId) {
         return new SellTableContent(commodityId, getMarkets(new SellMarketFactory(commodityId, economy)), economy);
+    }
+
+    private TableContent getOpportunitiesTableContent() {
+        return new OpportunitiesTableContent(economy, getMarkets(new OpportunitiesMarketFactory(economy)));
     }
 
     private List<MarketAPI> getMarkets(MarketFactory factory) {
