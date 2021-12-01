@@ -17,7 +17,7 @@ public class OpportunitiesMarketFactory extends MarketFactory {
 
     @Override
     protected void filterMarkets(List<MarketAPI> markets) {
-        CollectionsHelper.reduce(markets, new MarketAroundFilter(4));
+        CollectionsHelper.reduce(markets, new MarketAroundFilter(5));
     }
 
     @Override
