@@ -1,5 +1,6 @@
 package galmart.extractor;
 
+import com.fs.starfarer.api.campaign.econ.CommodityOnMarketAPI;
 import com.fs.starfarer.api.campaign.econ.CommoditySpecAPI;
 import com.fs.starfarer.api.campaign.econ.EconomyAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Stack;
 
 public class OpportunitiesTableContent implements TableContent {
+    
     private final EconomyAPI economy;
     private final List<MarketAPI> markets;
     private final List<CommoditySpecAPI> commodities;
@@ -47,89 +49,107 @@ public class OpportunitiesTableContent implements TableContent {
 //                        .05f * width,
                         "Profit",
                         .1f * width,
+                        "Commodity",
+                        .2f * width,
 //                        "Ratio",
 //                        .1f * width,
                         "System to Buy",
-                        .1f * width,
+                        .2f * width,
 //                        "Location to Buy",
 //                        .1f * width,
                         "System to Sell",
-                        .1f * width,
+                        .2f * width,
 //                        "Location to Sell",
 //                        .1f * width,
 //                        "Systems dist (ly)",
 //                        .1f * width,
-                        "Dist from you (ly)",
+                        "Dist/you (ly)",
+                        .1f * width,
+                        "Dist/each (ly)",
                         .1f * width };
         return header;
+    }
+
+    private Tuple<String, String> getSupDemMarkets(List<MarketAPI> markets, CommoditySpecAPI commodity) {
+        float higherDemand = 0f;
+        float lowerSupply = 0f;
+        String currentDemand = null;
+        String currentSupply = null;
+
+        for (MarketAPI market: markets) {
+            if (currentDemand == null) {
+                currentDemand = market.getId();
+                currentSupply = market.getId();
+            }
+
+            //float currentDemandPrice = PriceHelper.getDemandPrice(commodity, market);
+            float currentDemandPrice = PriceHelper.getDemandPrice(commodity, market);
+            float currentSupplyPrice = PriceHelper.getSupplyPrice(commodity, market);
+
+            if (higherDemand < currentDemandPrice) {
+                higherDemand = currentDemandPrice;
+                currentDemand = market.getId();
+            }
+            if (lowerSupply >= currentSupplyPrice) {
+                lowerSupply = currentSupplyPrice;
+                currentSupply = market.getId();
+            }
+        }
+
+        return new Tuple(currentSupply, currentDemand);
     }
 
     @Override
     public List<Object[]> getRows() {
         List<Object[]> rows = new ArrayList<Object[]>();
-        List<Triple<CommoditySpecAPI, MarketAPI, MarketAPI>> list = new ArrayList<>();
         for (CommoditySpecAPI commodity: commodities) {
-            float higherDemmand = 0f;
-            float lowerSupply = 0f;
-            MarketAPI currentDemand = null;
-            MarketAPI currentSupply = null;
-            DemandPrice demand = new DemandPrice(commodity.getId(), economy);
-            SupplyPrice supply = new SupplyPrice(commodity.getId(), economy);
-            for (MarketAPI market: markets) {
-                float currentDemandPrice = demand.getPrice(market);
-                float currentSupplyPrice = supply.getPrice(market);
-                if (higherDemmand < currentDemandPrice) {
-                    higherDemmand = currentDemandPrice;
-                    currentDemand = market;
-                }
-                if (lowerSupply >= currentSupplyPrice) {
-                    lowerSupply = currentSupplyPrice;
-                    currentSupply = market;
-                }
-            }
-            if (currentDemand == null || currentSupply == null) {
-                continue;
-            }
-            list.add(new Triple(commodity, currentDemand, currentSupply));
-        }
-        for(Triple<CommoditySpecAPI, MarketAPI, MarketAPI> item : list) {
-            CommoditySpecAPI commodity = item.getFirst();
-            MarketAPI demmand = item.getSecond();
-            MarketAPI supply = item.getThird();
-
-            DemandPrice demandPrice = new DemandPrice(commodity.getId(), economy);
-            SupplyPrice supplyPrice = new SupplyPrice(commodity.getId(), economy);
-            float profit = demandPrice.getPrice(demmand) - supplyPrice.getPrice(supply);
-
-            Vector2f demmandLocation = demmand.getLocationInHyperspace();
-            Vector2f supplyLocation = supply.getLocationInHyperspace();
-            float distance = Misc.getDistanceLY(demmandLocation, supplyLocation);
-
-            Object[] row = new Object[15];
-            // Profit
-            row[0] = Alignment.MID;
-            row[1] = Misc.getHighlightColor();
-            row[2] = Misc.getDGSCredits(profit);
-            // Commodity
-            row[3] = Alignment.MID;
-            row[4] = Misc.getHighlightColor();
-            row[5] = commodity.getName();
-            // System to buy
-            row[6] = Alignment.MID;
-            row[7] = Misc.getHighlightColor();
-            row[8] = demmand.getName();
-            // System to sell
-            row[9] = Alignment.MID;
-            row[10] = Misc.getHighlightColor();
-            row[11] = supply.getName();
-            // Distance to each other
-            row[12] = Alignment.MID;
-            row[13] = Misc.getHighlightColor();
-            row[14] = distance;
-
-            rows.add(row);
+            Tuple<String, String> supDem = getSupDemMarkets(markets, commodity);
+            ArrayList<Object> row = getRowObjects(commodity, supDem);
+            rows.add(row.toArray());
         }
         return rows;
+    }
+
+    private ArrayList<Object> getRowObjects(CommoditySpecAPI commodity, Tuple<String, String> supDem) {
+        MarketAPI demand = economy.getMarket(supDem.First);
+        MarketAPI supply = economy.getMarket(supDem.Second);
+
+        DemandPrice demandPrice = new DemandPrice(commodity.getId(), economy);
+        SupplyPrice supplyPrice = new SupplyPrice(commodity.getId(), economy);
+        float profit = demandPrice.getPrice(demand) - supplyPrice.getPrice(supply);
+
+        Vector2f demandLocation = demand.getLocationInHyperspace();
+        Vector2f supplyLocation = supply.getLocationInHyperspace();
+
+        float distance = Misc.getDistanceLY(demandLocation, supplyLocation);
+        float distancePlayer = Misc.getDistanceToPlayerLY(supplyLocation);
+
+        ArrayList<Object> row = new ArrayList<Object>();
+        // Profit
+        row.add(Alignment.MID);
+        row.add(Misc.getHighlightColor());
+        row.add(Misc.getDGSCredits(profit));
+        // Commodity
+        row.add(Alignment.MID);
+        row.add(Misc.getHighlightColor());
+        row.add(commodity.getName());
+        // System to buy
+        row.add(Alignment.MID);
+        row.add(supply.getTextColorForFactionOrPlanet());
+        row.add(supply.getName());
+        // System to sell
+        row.add(Alignment.MID);
+        row.add(demand.getTextColorForFactionOrPlanet());
+        row.add(demand.getName());
+        // Distance to you
+        row.add(Alignment.MID);
+        row.add(Misc.getHighlightColor());
+        row.add(String.format("%.1f", distancePlayer) + "ly");
+        // Distance to each other
+        row.add(Alignment.MID);
+        row.add(Misc.getHighlightColor());
+        row.add(String.format("%.1f", distance) + "ly");
+        return row;
     }
 
     @Override

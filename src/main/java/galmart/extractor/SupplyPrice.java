@@ -16,7 +16,6 @@ public class SupplyPrice implements Price {
 
     @Override
     public float getPrice(MarketAPI market) {
-        float econUnit = commoditySpec.getEconUnit();
-        return market.getSupplyPrice(commodityId, econUnit, true) / econUnit;
+        return PriceHelper.getSupplyPrice(this.commoditySpec, market);
     }
 }
