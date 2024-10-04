@@ -6,19 +6,21 @@ repositories {
     mavenCentral()
 }
 
+version = '1.0.2'
+
 // project level config
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 // build everything and make a jar
-build {
-    doLast {
-        copy {
-            from jar
-            into '.'
-        }
-    }
-}
+//build {
+//    doLast {
+//        copy {
+//            from jar
+//            into '.'
+//        }
+//    }
+//}
 
 // compile time dependencies
 dependencies {
@@ -35,6 +37,11 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
+jar {
+    archiveFileName.set("galmart.jar")
+
+}
+
 // create a release zip
 task release(type: Zip) {
     def jsonFile = file('src/main/resources/mod_info.json')
@@ -42,7 +49,7 @@ task release(type: Zip) {
     def parsedJson = slurper.parse(jsonFile)
     dependsOn build
     archiveFileName = "${project.name}-${parsedJson.version}.zip"
-    destinationDirectory = file(rootDir)
+    destinationDirectory = file("${rootDir}/build")
     from sourceSets.main.resources
     from jar
     into project.name
